@@ -12,7 +12,8 @@ namespace Haste
         static void Main(string[] args)
         {
             Console.WriteLine("Program Start");
-            String URL = "http://www.ibruce.net/eMag/Playboy/Playboy%20Magazine%20Nederland%20-%20October%202011.pdf";
+            Console.WriteLine("Enter URL: ");
+            String URL = Console.ReadLine();
             Download x = new Download(URL, 7);
             Console.WriteLine("Program Ended.....");
             Console.ReadLine();
