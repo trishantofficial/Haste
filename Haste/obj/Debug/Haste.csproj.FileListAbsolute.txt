@@ -1,0 +1,6 @@
+c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\bin\Debug\Haste.exe.config
+c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\bin\Debug\Haste.exe
+c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\bin\Debug\Haste.pdb
+c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\obj\Debug\Haste.exe
+c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\obj\Debug\Haste.pdb
+c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\obj\Debug\Haste.csprojResolveAssemblyReference.cache
