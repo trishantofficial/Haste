@@ -23,8 +23,9 @@ namespace Haste
             {
                 try
                 {
+                    FileMode fileToken = (System.IO.File.Exists(this.getName()) ? FileMode.Append : FileMode.Create);
                     byte[] fileData = System.IO.File.ReadAllBytes(downloadFile.getName());
-                    var stream = new FileStream(this.getName(), FileMode.Append);
+                    var stream = new FileStream(this.getName(), fileToken);
                     try
                     {
                         stream.Write(fileData, 0, fileData.Length);
@@ -36,36 +37,12 @@ namespace Haste
                     finally
                     {
                         stream.Close();
+                        System.IO.File.Delete(downloadFile.getName());
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Console.WriteLine("Couldn't read file " + downloadFile.getPartNumber());
-                }
-            }
-        }
-        public void createCompiledFile()
-        {
-            if (!System.IO.File.Exists(this.name))
-            {
-                try
-                {
-                    FileStream fs = System.IO.File.Create(this.name);
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine("Error creating File...");
-                }
-            }
-            else
-            {
-                Console.WriteLine("File already exists....");
-                Console.WriteLine("Rewrite??");
-                String rewrite = Console.ReadLine();
-                if(rewrite == "y" || rewrite == "Y")
-                {
-                    System.IO.File.Delete(name);
-                    FileStream fs = System.IO.File.Create(this.name);
                 }
             }
         }

@@ -42,16 +42,24 @@ namespace Haste
             if (dlStart == "y" || dlStart == "Y")
             {
                 Console.WriteLine("Download started.");
+                List<Thread> threadList = new List<Thread>();
                 foreach (var downloadFile in downloadFiles)
                 {
-                    downloadFile.downloadFile();
+                    Thread aThread = new Thread(downloadFile.downloadFile);
+                    aThread.Start();
+                    threadList.Add(aThread);
                 }
+                foreach (Thread aThread in threadList)
+                {
+                    aThread.Join();
+                }
+                Console.WriteLine("Download complete");
             }
             Console.WriteLine("Compile Files? Y/N");
             String compileChar = Console.ReadLine();
             if (compileChar == "y" || compileChar == "Y")
             {
-                Console.WriteLine("Start Download? Y/N");
+                Console.WriteLine("Compiling Files.....");
                 fileCompiler(name, downloadFiles);
             }
         }
@@ -94,7 +102,6 @@ namespace Haste
         public void fileCompiler(String fileName, List<Haste.File> downloadFiles)
         {
             Haste.compiledFile CompiledFile = new Haste.compiledFile(fileName, downloadFiles);
-            CompiledFile.createCompiledFile();
             CompiledFile.compile();
         }
         public void setDownloadFiles(List<Haste.File> downloadFiles)

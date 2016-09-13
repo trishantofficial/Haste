@@ -26,31 +26,40 @@ namespace Haste
         }
         public void downloadFile()
         {
-            Console.WriteLine("Downloading file " + this.getPartNumber());
+            /*Console.WriteLine("Downloading file " + this.getPartNumber());
+            FileStream downloadStream = new FileStream(this.name, FileMode.Create, FileAccess.Write, FileShare.None);
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
             request.AddRange((long)this.startRange, (long)this.endRange);
-            request.Method = "HEAD";
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            long responseLength = long.Parse(response.Headers.Get("Content-Length"));
-            Console.WriteLine("");
-
-            /*WebClient webClient = new WebClient();
-            //webClient.DownloadProgressChanged += webClient_DownloadProgressChanged;
-            String rangeString = "bytes=" + (long)this.startRange + "-" + (long)this.endRange;
-            webClient.Headers["Range"] = rangeString;
-            for (int i = 0; i < 3; i++)
+            //request.Method = "HEAD";
+            try
             {
-                try
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Stream responseStream = response.GetResponseStream();
+                int bytesSize = 0;
+                byte[] bufferBytes = new byte[2048];
+                while ((bytesSize = responseStream.Read(bufferBytes, 0, bufferBytes.Length)) > 0)
                 {
-                    webClient.DownloadFileAsync(new Uri(this.URL), this.name);
-                    break;
+                    downloadStream.Write(bufferBytes, 0, bytesSize);
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Error downloading File...");
-                    Console.WriteLine("Retrying.... " + i + "th time");
-                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Couldn't download file " + this.getPartNumber());
             }*/
+            //long responseLength = long.Parse(response.Headers.Get("Content-Length"));
+            
+            WebClient webClient = new WebClient();
+            //webClient.DownloadProgressChanged += webClient_DownloadProgressChanged;
+            String rangeString = String.Format("bytes={0}-{1}", (long)this.startRange, (long)this.endRange);
+            //webClient.Headers.Add(HttpRequestHeader.Range, rangeString);        /*Adds range header to the webclient for downloading the specific part.*/
+            try
+            {
+                webClient.DownloadFile(new Uri(this.URL), this.name);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Error downloading file " + this.getPartNumber());
+            }
         }
         /*void webClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
