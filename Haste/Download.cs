@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Haste;
 
@@ -42,7 +43,7 @@ namespace Haste
             if (dlStart == "y" || dlStart == "Y")
             {
                 Console.WriteLine("Download started.");
-                List<Thread> threadList = new List<Thread>();
+                /*List<Thread> threadList = new List<Thread>();
                 foreach (var downloadFile in downloadFiles)
                 {
                     Thread aThread = new Thread(downloadFile.downloadFile);
@@ -52,7 +53,21 @@ namespace Haste
                 foreach (Thread aThread in threadList)
                 {
                     aThread.Join();
+                }*/
+                var events = new List<ManualResetEvent>();
+                
+                foreach (var downloadFile in downloadFiles)
+                {
+                    var resetEvent = new ManualResetEvent(false);
+                    ThreadPool.QueueUserWorkItem(
+                        arg =>
+                        {
+                            downloadFile.downloadFile();
+                            resetEvent.Set();
+                        });
+                    events.Add(resetEvent);
                 }
+                WaitHandle.WaitAll(events.ToArray());
                 Console.WriteLine("Download complete");
             }
             Console.WriteLine("Compile Files? Y/N");
