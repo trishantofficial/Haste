@@ -14,7 +14,9 @@ namespace Haste
             Console.WriteLine("Program Start");
             Console.WriteLine("Enter URL: ");
             String URL = Console.ReadLine();
-            Download x = new Download(URL, 1); /*Downloads in 1 part.... Change 2nd argument for n number of parts.*/
+            Console.WriteLine("Enter number of parts...");
+            int parts = int.Parse(Console.ReadLine());
+            Download x = new Download(URL, parts);
             Console.WriteLine("Program Ended.....");
             Console.ReadLine();
         }
