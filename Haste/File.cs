@@ -4,7 +4,9 @@ using System.IO;
 using System.Net.Http.Headers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Haste
@@ -24,47 +26,44 @@ namespace Haste
             setStartRange(startRange);
             setEndRange(endRange);
         }
+
         public void downloadFile()
         {
-            /*Console.WriteLine("Downloading file " + this.getPartNumber());
-            FileStream downloadStream = new FileStream(this.name, FileMode.Create, FileAccess.Write, FileShare.None);
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
-            request.AddRange((long)this.startRange, (long)this.endRange);
-            //request.Method = "HEAD";
             try
             {
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                Stream responseStream = response.GetResponseStream();
-                int bytesSize = 0;
-                byte[] bufferBytes = new byte[2048];
-                while ((bytesSize = responseStream.Read(bufferBytes, 0, bufferBytes.Length)) > 0)
+                Console.WriteLine("Downloading file " + this.getPartNumber());
+                using (
+                    FileStream downloadStream = new FileStream(this.name, FileMode.Create, FileAccess.Write,
+                        FileShare.None))
                 {
-                    downloadStream.Write(bufferBytes, 0, bytesSize);
+                    HttpWebRequest HttpRequest = (HttpWebRequest) WebRequest.Create(this.URL) as HttpWebRequest;
+                    HttpRequest.AddRange(this.startRange, this.endRange);
+                    HttpRequest.Timeout = 3600000;
+                    using (HttpWebResponse HttpResponse = (HttpWebResponse) HttpRequest.GetResponse())
+                    {
+                        using (Stream responseStream = HttpResponse.GetResponseStream())
+                        {
+                            int bytesRead = 0;
+                            byte[] buffer = new byte[4096];
+                            while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                downloadStream.Write(buffer, 0, bytesRead);
+                            }
+                        }
+                    }
                 }
+            Console.WriteLine("File " + this.getPartNumber() + " downloaded.");
             }
             catch (Exception e)
             {
                 Console.WriteLine("Couldn't download file " + this.getPartNumber());
-            }*/
-            //long responseLength = long.Parse(response.Headers.Get("Content-Length"));
-            
-            WebClient webClient = new WebClient();
-            //webClient.DownloadProgressChanged += webClient_DownloadProgressChanged;
-            String rangeString = String.Format("bytes={0}-{1}", (long)this.startRange, (long)this.endRange);
-            //webClient.Headers.Add(HttpRequestHeader.Range, rangeString);        /*Adds range header to the webclient for downloading the specific part.*/
-            try
-            {
-                webClient.DownloadFile(new Uri(this.URL), this.name);
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine("Error downloading file " + this.getPartNumber());
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.Source);
+                Console.WriteLine(e.StackTrace);
+                Console.WriteLine("Retrying download ", this.getPartNumber());
+                downloadFile();
             }
         }
-        /*void webClient_DownloadProgressChanged(object sender, DownloadProgressChangedEventArgs e)
-        {
-            progressBar.Value = e.ProgressPercentage;
-        }*/
         public void setURL(String URL)
         {
             this.URL = URL;
