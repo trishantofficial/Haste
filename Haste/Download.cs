@@ -15,10 +15,16 @@ namespace Haste
         public Download(String URL, int partitions)
         {
             String name = getFileName(URL);
-            long downloadSize = getDownloadSize(URL);
-            Console.WriteLine(downloadSize);
-            long partitionSize = downloadSize / (long)partitions;
-            long partLeft = downloadSize % (long)partitions;
+            Tuple<long, Boolean> downloadProperties = getDownloadProperites(URL);
+            long downloadSize = downloadProperties.Item1;
+            Boolean downloadResumable = downloadProperties.Item2;
+            Console.WriteLine("File size = " + downloadSize);
+            if (!downloadResumable)
+            {
+                 partitions = 1;  
+            }
+            long partitionSize = downloadSize / partitions;
+            long partLeft = downloadSize % partitions;
             Console.WriteLine(partLeft);
             Console.WriteLine(partitionSize);
             for (long partNumber = 1, startRange = 0; (int)partNumber <= partitions; partNumber++, startRange += partitionSize)
@@ -43,31 +49,22 @@ namespace Haste
             if (dlStart == "y" || dlStart == "Y")
             {
                 Console.WriteLine("Download started.");
-                /*List<Thread> threadList = new List<Thread>();
+                ServicePointManager.Expect100Continue = false;
+                ServicePointManager.DefaultConnectionLimit = 20;
+                var downloadStatus = new List<ManualResetEvent>();
+                ThreadPool.SetMaxThreads(4, 4);
                 foreach (var downloadFile in downloadFiles)
                 {
-                    Thread aThread = new Thread(downloadFile.downloadFile);
-                    aThread.Start();
-                    threadList.Add(aThread);
-                }
-                foreach (Thread aThread in threadList)
-                {
-                    aThread.Join();
-                }*/
-                var events = new List<ManualResetEvent>();
-                
-                foreach (var downloadFile in downloadFiles)
-                {
-                    var resetEvent = new ManualResetEvent(false);
+                    var downloadPartStatus = new ManualResetEvent(false);
                     ThreadPool.QueueUserWorkItem(
                         arg =>
                         {
                             downloadFile.downloadFile();
-                            resetEvent.Set();
+                            downloadPartStatus.Set();
                         });
-                    events.Add(resetEvent);
+                    downloadStatus.Add(downloadPartStatus);
                 }
-                WaitHandle.WaitAll(events.ToArray());
+                WaitHandle.WaitAll(downloadStatus.ToArray());
                 Console.WriteLine("Download complete");
             }
             Console.WriteLine("Compile Files? Y/N");
@@ -84,35 +81,39 @@ namespace Haste
             string fileName = System.IO.Path.GetFileName(uri.LocalPath);
             return fileName;
         }
-        public long getDownloadSize(String URL)
+        public Tuple<long, Boolean> getDownloadProperites(String URL)
         {
+            Boolean resumable = false;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
             request.Method = "HEAD";
-            long size = 0;
+            request.Timeout = 36000;
+            long size = -1;
+            short responseCode = 0;
             for (int retry = 3; retry >= 0; retry--) {
                 try
                 {
-                    HttpWebResponse response = (HttpWebResponse)(request.GetResponse());
-                    size = response.ContentLength;
-                    break;
+                    using (HttpWebResponse response = (HttpWebResponse) request.GetResponse())
+                    {
+                        size = response.ContentLength;
+                        responseCode = (short) response.StatusCode;
+                        if (response.Headers.Get("Accept-Ranges") != null)
+                        {
+                            resumable = true;
+                        }
+                        break;
+                    }
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine("Error connecting...");
                     Console.WriteLine("Retrying....");
+                    Console.WriteLine(e.Source);
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
                 }
             }
-            if (size == 0)
-            {
-                Console.WriteLine("File cannot be downloaded.");
-                Thread.Sleep(5000);
-                Environment.Exit(0);
-                return size;
-            }
-            else
-            {
-                return size;
-            }
+            Console.WriteLine("Downloading file.");
+            return new Tuple<long, Boolean>(size, resumable);
         }
         public void fileCompiler(String fileName, List<Haste.File> downloadFiles)
         {

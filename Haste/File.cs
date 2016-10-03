@@ -3,6 +3,7 @@ using System.Net;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -17,6 +18,7 @@ namespace Haste
         private Boolean isPart;
         private int partNumber;
         private long startRange, endRange;
+        public EventHandler<ProgressChangedEventArgs> Progress;
         public File(String URL, String name, int partNumber, long startRange, long endRange, Boolean isPart = true)
         {
             setURL(URL);
@@ -32,21 +34,31 @@ namespace Haste
             try
             {
                 Console.WriteLine("Downloading file " + this.getPartNumber());
-                using (
-                    FileStream downloadStream = new FileStream(this.name, FileMode.Create, FileAccess.Write,
+                using (FileStream downloadStream = new FileStream(this.name, FileMode.Create, FileAccess.Write,
                         FileShare.None))
                 {
+                    /*HTTPRequest HttpRequest = new HTTPRequest(this.URL, startRange, endRange);
+                    HttpRequest.startRequest();
+                    HTTPResponse HttpResponse = new HTTPResponse(HttpRequest.getRequestSocket());
+                    HttpResponse.readResponse(downloadStream);*/
                     HttpWebRequest HttpRequest = (HttpWebRequest) WebRequest.Create(this.URL) as HttpWebRequest;
                     HttpRequest.AddRange(this.startRange, this.endRange);
+                    HttpRequest.Proxy = null;
                     HttpRequest.Timeout = 3600000;
                     using (HttpWebResponse HttpResponse = (HttpWebResponse) HttpRequest.GetResponse())
                     {
                         using (Stream responseStream = HttpResponse.GetResponseStream())
                         {
                             int bytesRead = 0;
-                            byte[] buffer = new byte[4096];
+                            long fileRead = 0;
+                            long totalBytes = HttpResponse.ContentLength;
+                            byte[] buffer = new byte[65300];
                             while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
                             {
+                                fileRead += bytesRead;
+                                int percentage = (int) (fileRead / totalBytes);
+                                //Percentage = new ProgressChangedEventArgs(percentage);
+                                //Console.WriteLine("File " + partNumber + " bytes read = " + bytesRead);
                                 downloadStream.Write(buffer, 0, bytesRead);
                             }
                         }
@@ -64,6 +76,9 @@ namespace Haste
                 downloadFile();
             }
         }
+
+        public ProgressChangedEventArgs Percentage { get; set; }
+
         public void setURL(String URL)
         {
             this.URL = URL;

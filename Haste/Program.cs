@@ -13,6 +13,7 @@ namespace Haste
         {
             Console.WriteLine("Program Start");
             Console.WriteLine("Enter URL: ");
+            //String URL = "http://www.simpte.ch/ebooks/Networking%20Books/CCNA%20Security.pdf";
             String URL = Console.ReadLine();
             Console.WriteLine("Enter number of parts...");
             int parts = int.Parse(Console.ReadLine());
