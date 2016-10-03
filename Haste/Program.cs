@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Haste;
 
 namespace Haste
 {
@@ -13,11 +8,12 @@ namespace Haste
         {
             Console.WriteLine("Program Start");
             Console.WriteLine("Enter URL: ");
-            String URL = Console.ReadLine();
+            string url = Console.ReadLine();
             Console.WriteLine("Enter number of parts...");
             int parts = int.Parse(Console.ReadLine());
-            Download x = new Download(URL, parts);
+            new Download(url, parts);
             Console.WriteLine("Program Ended.....");
+            Console.WriteLine("Press any key to continue!");
             Console.ReadLine();
         }
     }

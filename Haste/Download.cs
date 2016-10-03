@@ -1,147 +1,117 @@
 ﻿using System;
 using System.Net;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Haste;
+using System.Threading.Tasks;
 
 namespace Haste
 {
     public class Download
     {
-        private List<Haste.File> downloadFiles = new List<Haste.File>();
-        private int partitions;
-        private String URL;
-        public Download(String URL, int partitions)
+        #region Variable and Properties.
+
+        public List<HasteFile> DownloadFile { get; }
+
+        private Task _downloadTask;
+
+        #endregion
+
+        public Download(string url, int partitions)
         {
-            String name = getFileName(URL);
-            long downloadSize = getDownloadSize(URL);
-            Console.WriteLine(downloadSize);
-            long partitionSize = downloadSize / (long)partitions;
-            long partLeft = downloadSize % (long)partitions;
-            Console.WriteLine(partLeft);
-            Console.WriteLine(partitionSize);
+            DownloadFile = new List<HasteFile>();
+            HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+            string name = GetFileName(url);
+            long downloadSize = GetDownloadSize(request.GetResponse());
+            Console.WriteLine("Download Size: {0}", downloadSize);
+            long partitionSize = downloadSize/partitions;
+            long partLeft = downloadSize%partitions;
+            Console.WriteLine("Part Left: {0}", partLeft);
+            Console.WriteLine("Partition size: {0}", partitionSize);
             for (long partNumber = 1, startRange = 0; (int)partNumber <= partitions; partNumber++, startRange += partitionSize)
             {
-                String fileName = String.Concat(name, ".", partNumber);
+                string fileName = string.Concat(name, ".", partNumber);
                 long endRange = startRange + partitionSize;
                 if (startRange != 0)
                     if (endRange + partLeft >= downloadSize)
-                        downloadFiles.Add(new Haste.File(URL, fileName, (int)partNumber, startRange + 1, endRange + partLeft, true));
+                        DownloadFile.Add(new HasteFile(url, fileName, (int)partNumber, startRange + 1, endRange + partLeft));
                     else
-                        downloadFiles.Add(new Haste.File(URL, fileName, (int)partNumber, startRange + 1, endRange, true));
+                        DownloadFile.Add(new HasteFile(url, fileName, (int)partNumber, startRange + 1, endRange));
                 else
-                    downloadFiles.Add(new Haste.File(URL, fileName, (int)partNumber, startRange, endRange, true));
+                    DownloadFile.Add(new HasteFile(url, fileName, (int)partNumber, startRange, endRange));
             }
-            foreach(var downloadFile in downloadFiles)
+            foreach(HasteFile hasteFile in DownloadFile)
             {
-                long x = downloadFile.getEndRange() - downloadFile.getStartRange();
-                Console.WriteLine("Name: " + downloadFile.getName() + "\nPart number: " + downloadFile.getPartNumber() + "\n Start Range:" + downloadFile.getStartRange() + "\n End Range:" + downloadFile.getEndRange() + "\nPart Difference = " + x + "\n\n");
+                long x = hasteFile.EndRange - hasteFile.StartRange;
+                Console.WriteLine("Name: {0}",hasteFile.Name);
+                Console.WriteLine("Part number: {0}", hasteFile.PartNumber);
+                Console.WriteLine("Start range: {0}", hasteFile.StartRange);
+                Console.WriteLine("End range: {0}", hasteFile.EndRange);
+                Console.WriteLine("Part Difference: {0}", x);
             }
             Console.WriteLine("Start Download? Y/N");
-            String dlStart = Console.ReadLine();
+            string dlStart = Console.ReadLine();
             if (dlStart == "y" || dlStart == "Y")
             {
                 Console.WriteLine("Download started.");
-                /*List<Thread> threadList = new List<Thread>();
-                foreach (var downloadFile in downloadFiles)
-                {
-                    Thread aThread = new Thread(downloadFile.downloadFile);
-                    aThread.Start();
-                    threadList.Add(aThread);
-                }
-                foreach (Thread aThread in threadList)
-                {
-                    aThread.Join();
-                }*/
-                var events = new List<ManualResetEvent>();
                 
-                foreach (var downloadFile in downloadFiles)
+                foreach (var downloadFile in DownloadFile)
                 {
-                    var resetEvent = new ManualResetEvent(false);
-                    ThreadPool.QueueUserWorkItem(
-                        arg =>
-                        {
-                            downloadFile.downloadFile();
-                            resetEvent.Set();
-                        });
-                    events.Add(resetEvent);
+                    _downloadTask = Task.Factory.StartNew(() =>
+                    {
+                        downloadFile.DownloadFile();
+                    });
                 }
-                WaitHandle.WaitAll(events.ToArray());
+
+                Task.WaitAll(new Task[]
+                {
+                    _downloadTask
+                });
+
                 Console.WriteLine("Download complete");
             }
             Console.WriteLine("Compile Files? Y/N");
-            String compileChar = Console.ReadLine();
+            string compileChar = Console.ReadLine();
             if (compileChar == "y" || compileChar == "Y")
             {
                 Console.WriteLine("Compiling Files.....");
-                fileCompiler(name, downloadFiles);
+                FileCompiler(name, DownloadFile);
             }
         }
-        public String getFileName(String hrefLink)
+        public string GetFileName(string hrefLink)
         {
             Uri uri = new Uri(hrefLink);
             string fileName = System.IO.Path.GetFileName(uri.LocalPath);
             return fileName;
         }
-        public long getDownloadSize(String URL)
+        public long GetDownloadSize(WebResponse response)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
-            request.Method = "HEAD";
             long size = 0;
-            for (int retry = 3; retry >= 0; retry--) {
+            for (int i = 0; i < 3; i++)
+            {
                 try
                 {
-                    HttpWebResponse response = (HttpWebResponse)(request.GetResponse());
                     size = response.ContentLength;
-                    break;
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Console.WriteLine("Error connecting...");
-                    Console.WriteLine("Retrying....");
+                    Console.WriteLine("Trying again!");
                 }
             }
             if (size == 0)
             {
-                Console.WriteLine("File cannot be downloaded.");
-                Thread.Sleep(5000);
+                Console.WriteLine("HasteFile cannot be downloaded.");
                 Environment.Exit(0);
-                return size;
             }
             else
             {
                 return size;
             }
+            return -1;
         }
-        public void fileCompiler(String fileName, List<Haste.File> downloadFiles)
+        public void FileCompiler(string fileName, List<HasteFile> downloadFiles)
         {
-            Haste.compiledFile CompiledFile = new Haste.compiledFile(fileName, downloadFiles);
-            CompiledFile.compile();
-        }
-        public void setDownloadFiles(List<Haste.File> downloadFiles)
-        {
-            this.downloadFiles = downloadFiles;
-        }
-        public List<Haste.File> getDownloadFiles()
-        {
-            return this.downloadFiles;
-        }
-        public void setPartitions(int partitions)
-        {
-            this.partitions = partitions;
-        }
-        public int getPartitions()
-        {
-            return this.partitions;
-        }
-        public void setURL(String URL)
-        {
-            this.URL = URL;
-        }
-        public String getURL()
-        {
-            return this.URL;
+            CompiledFile compiledFile = new CompiledFile(fileName, downloadFiles);
+            compiledFile.Compile();
         }
     }
 }
