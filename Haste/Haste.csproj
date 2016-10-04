@@ -43,11 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HTTPResponse.cs" />
     <Compile Include="compiledFile.cs" />
     <Compile Include="Download.cs" />
     <Compile Include="File.cs" />
-    <Compile Include="HTTPRequest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
