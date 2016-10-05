@@ -99,10 +99,10 @@ namespace Haste
             FileCompiler(FileName, _downloadFiles);
         }
 
-        private Tuple<long, bool> GetDownloadProperites(string URL)
+        private Tuple<long, bool> GetDownloadProperites(string url)
         {
             bool resumable = false;
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = "HEAD";
             request.Timeout = 36000;
             long size = -1;
@@ -132,7 +132,7 @@ namespace Haste
             return new Tuple<long, bool>(size, resumable);
         }
 
-        private void FileCompiler(string fileName, List<Haste.HasteFile> downloadFiles)
+        private void FileCompiler(string fileName, List<HasteFile> downloadFiles)
         {
             CompiledFile compiledFile = new CompiledFile(fileName, downloadFiles);
             compiledFile.Compile();

@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using static System.Console;
 
 namespace Haste
 {
@@ -14,7 +15,7 @@ namespace Haste
         {
             Name = name;
             DownloadFiles = downloadFiles;
-            Console.WriteLine(Name);
+            WriteLine(Name);
         }
         public void Compile()
         {
@@ -31,7 +32,8 @@ namespace Haste
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Couldn't write file " + downloadFile.PartNumber);
+                        WriteLine("Exception occured: {0}", e.Message);
+                        WriteLine("Stack Trace: {0}", e.StackTrace);
                     }
                     finally
                     {
@@ -41,7 +43,8 @@ namespace Haste
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Couldn't read file " + downloadFile.PartNumber);
+                    WriteLine("Exception occured: {0}", e.Message);
+                    WriteLine("Stack Trace: {0}", e.StackTrace);
                 }
             }
         }

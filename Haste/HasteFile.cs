@@ -42,27 +42,27 @@ namespace Haste
             try
             {
                 Console.WriteLine("Downloading file " + PartNumber);
-                using (FileStream downloadStream = new FileStream(this.Name, FileMode.Create, FileAccess.Write, FileShare.None))
+                using (FileStream downloadStream = new FileStream(Name, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
-                    HttpWebRequest httpRequest = WebRequest.Create(this.Url) as HttpWebRequest;
-                    httpRequest.AddRange(StartRange, EndRange);
-                    httpRequest.Proxy = null;
-                    httpRequest.Timeout = 3600000;
-                    using (HttpWebResponse httpResponse = (HttpWebResponse) httpRequest.GetResponse())
+                    HttpWebRequest httpRequest = WebRequest.Create(Url) as HttpWebRequest;
+                    if (httpRequest != null)
                     {
-                        using (Stream responseStream = httpResponse.GetResponseStream())
+                        httpRequest.AddRange(StartRange, EndRange);
+                        httpRequest.Proxy = null;
+                        httpRequest.Timeout = 3600000;
+                        using (HttpWebResponse httpResponse = (HttpWebResponse) httpRequest.GetResponse())
                         {
-                            int bytesRead = 0;
-                            long fileRead = 0;
-                            long totalBytes = httpResponse.ContentLength;
-                            byte[] buffer = new byte[65300];
-                            while ((bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                            using (Stream responseStream = httpResponse.GetResponseStream())
                             {
-                                fileRead += bytesRead;
-                                int percentage = (int) (fileRead / totalBytes);
-                                //Percentage = new ProgressChangedEventArgs(percentage);
-                                //Console.WriteLine("File " + partNumber + " bytes read = " + bytesRead);
-                                downloadStream.Write(buffer, 0, bytesRead);
+                                int bytesRead;
+                                byte[] buffer = new byte[65300];
+                                while (responseStream != null && (bytesRead = responseStream.Read(buffer, 0, buffer.Length)) > 0)
+                                {
+                                    //int percentage = (int) (fileRead / totalBytes);
+                                    //Percentage = new ProgressChangedEventArgs(percentage);
+                                    //Console.WriteLine("File " + partNumber + " bytes read = " + bytesRead);
+                                    downloadStream.Write(buffer, 0, bytesRead);
+                                }
                             }
                         }
                     }
