@@ -1,66 +1,49 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Haste
 {
-    class compiledFile
+    class CompiledFile
     {
-        String name;
-        List<Haste.File> downloadFiles;
-        public compiledFile(String name, List<Haste.File> downloadFiles)
+        public string Name { get; private set; }
+        public List<HasteFile> DownloadFiles { get; private set; }
+
+
+        public CompiledFile(string name, List<HasteFile> downloadFiles)
         {
-            setName(name);
-            setDownloadFiles(downloadFiles);
-            Console.WriteLine(getName());
+            Name = name;
+            DownloadFiles = downloadFiles;
+            Console.WriteLine(Name);
         }
-        public void compile()
+        public void Compile()
         {
-            foreach (Haste.File downloadFile in this.downloadFiles)
+            foreach (HasteFile downloadFile in DownloadFiles)
             {
                 try
                 {
-                    FileMode fileToken = (System.IO.File.Exists(this.getName()) ? FileMode.Append : FileMode.Create);
-                    byte[] fileData = System.IO.File.ReadAllBytes(downloadFile.getName());
-                    var stream = new FileStream(this.getName(), fileToken);
+                    FileMode fileToken = (File.Exists(Name) ? FileMode.Append : FileMode.Create);
+                    byte[] fileData = File.ReadAllBytes(downloadFile.Name);
+                    var stream = new FileStream(Name, fileToken);
                     try
                     {
                         stream.Write(fileData, 0, fileData.Length);
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Couldn't write file " + downloadFile.getPartNumber());
+                        Console.WriteLine("Couldn't write file " + downloadFile.PartNumber);
                     }
                     finally
                     {
                         stream.Close();
-                        System.IO.File.Delete(downloadFile.getName());
+                        File.Delete(downloadFile.Name);
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Couldn't read file " + downloadFile.getPartNumber());
+                    Console.WriteLine("Couldn't read file " + downloadFile.PartNumber);
                 }
             }
-        }
-        public void setName(String name)
-        {
-            this.name = name;
-        }
-        public String getName()
-        {
-            return this.name;
-        }
-        public void setDownloadFiles(List<Haste.File> downloadFiles)
-        {
-            this.downloadFiles = downloadFiles;
-        }
-        public List<Haste.File> getDownloadFiles()
-        {
-            return this.downloadFiles;
         }
     }
 }

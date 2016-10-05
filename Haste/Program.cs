@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Haste;
+using static System.Console;
 
 namespace Haste
 {
@@ -11,15 +7,15 @@ namespace Haste
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Program Start");
-            Console.WriteLine("Enter URL: ");
-            //String URL = "http://www.simpte.ch/ebooks/Networking%20Books/CCNA%20Security.pdf";
-            String URL = Console.ReadLine();
-            Console.WriteLine("Enter number of parts...");
-            int parts = int.Parse(Console.ReadLine());
+            WriteLine("Program Start");
+            WriteLine("Enter URL: ");
+            //string URL = "http://www.simpte.ch/ebooks/Networking%20Books/CCNA%20Security.pdf";
+            string URL = Console.ReadLine();
+            WriteLine("Number of threads: {0}", Environment.ProcessorCount*2);
+            int parts = int.Parse(ReadLine());
             Download x = new Download(URL, parts);
-            Console.WriteLine("Program Ended.....");
-            Console.ReadLine();
+            WriteLine("Program Ended.....");
+            ReadLine();
         }
     }
 }

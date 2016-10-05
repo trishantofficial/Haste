@@ -3,49 +3,78 @@ using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Haste;
 
 namespace Haste
 {
     public class Download
     {
-        private List<Haste.File> downloadFiles = new List<Haste.File>();
-        private int partitions;
-        private String URL;
-        public Download(String URL, int partitions)
+        #region Variable and Properties
+
+        private List<HasteFile> _downloadFiles = new List<HasteFile>();
+
+        public int Partitions { get; private set; }
+
+        public string Url { get; private set; }
+        
+        public string FileName { get; private set; }
+
+        public long PartitionSize { get; private set; }
+
+        public long PartLeft { get; private set; }
+
+        #endregion
+
+
+        /// <summary>
+        /// Initializes a new instance of the Download class.
+        /// Helps us to download the file.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="partitions"></param>
+        public Download(string url, int partitions)
         {
-            String name = getFileName(URL);
-            Tuple<long, Boolean> downloadProperties = getDownloadProperites(URL);
-            long downloadSize = downloadProperties.Item1;
-            Boolean downloadResumable = downloadProperties.Item2;
-            Console.WriteLine("File size = " + downloadSize);
-            if (!downloadResumable)
+            Url = url;
+            FileName = Uri.UnescapeDataString(Url.Split('/').Last());
+            // Item1: Download Size
+            // Item2: Download Resumable
+            Tuple<long, bool> downloadProperties = GetDownloadProperites(url);
+            Console.WriteLine("File size = " + downloadProperties.Item1);
+            if (!downloadProperties.Item2)
             {
-                 partitions = 1;  
+                Partitions = 1;
             }
-            long partitionSize = downloadSize / partitions;
-            long partLeft = downloadSize % partitions;
-            Console.WriteLine(partLeft);
-            Console.WriteLine(partitionSize);
-            for (long partNumber = 1, startRange = 0; (int)partNumber <= partitions; partNumber++, startRange += partitionSize)
+            PartitionSize = downloadProperties.Item1 / partitions;
+            PartLeft = downloadProperties.Item1 % partitions;
+            Console.WriteLine(PartLeft);
+            Console.WriteLine(PartitionSize);
+
+            for (long partNumber = 1, startRange = 0; (int)partNumber <= partitions; partNumber++, startRange += PartitionSize)
             {
-                String fileName = String.Concat(name, ".", partNumber);
-                long endRange = startRange + partitionSize;
+                string fileName = string.Concat(FileName, ".", partNumber);
+                long endRange = startRange + PartitionSize;
                 if (startRange != 0)
-                    if (endRange + partLeft >= downloadSize)
-                        downloadFiles.Add(new Haste.File(URL, fileName, (int)partNumber, startRange + 1, endRange + partLeft, true));
+                    if (endRange + PartLeft >= downloadProperties.Item1)
+                        _downloadFiles.Add(new HasteFile(url, fileName, (int)partNumber, startRange + 1, endRange + PartLeft));
                     else
-                        downloadFiles.Add(new Haste.File(URL, fileName, (int)partNumber, startRange + 1, endRange, true));
+                        _downloadFiles.Add(new HasteFile(url, fileName, (int)partNumber, startRange + 1, endRange));
                 else
-                    downloadFiles.Add(new Haste.File(URL, fileName, (int)partNumber, startRange, endRange, true));
+                    _downloadFiles.Add(new HasteFile(url, fileName, (int)partNumber, startRange, endRange));
             }
-            foreach(var downloadFile in downloadFiles)
+            foreach(var downloadFile in _downloadFiles)
             {
-                long x = downloadFile.getEndRange() - downloadFile.getStartRange();
-                Console.WriteLine("Name: " + downloadFile.getName() + "\nPart number: " + downloadFile.getPartNumber() + "\n Start Range:" + downloadFile.getStartRange() + "\n End Range:" + downloadFile.getEndRange() + "\nPart Difference = " + x + "\n\n");
+                long x = downloadFile.EndRange - downloadFile.StartRange;
+                Console.WriteLine("Name: " + downloadFile.Name + "\nPart number: " + downloadFile.PartNumber + "\n Start Range:" + downloadFile.StartRange + "\n End Range:" + downloadFile.EndRange + "\nPart Difference = " + x + "\n\n");
             }
+            BeginDownload();
+        }
+
+        /// <summary>
+        /// Starts the process of downloading.
+        /// </summary>
+        private void BeginDownload()
+        {
             Console.WriteLine("Start Download? Y/N");
-            String dlStart = Console.ReadLine();
+            string dlStart = Console.ReadLine();
             if (dlStart == "y" || dlStart == "Y")
             {
                 Console.WriteLine("Download started.");
@@ -53,13 +82,13 @@ namespace Haste
                 ServicePointManager.DefaultConnectionLimit = 20;
                 var downloadStatus = new List<ManualResetEvent>();
                 ThreadPool.SetMaxThreads(4, 4);
-                foreach (var downloadFile in downloadFiles)
+                foreach (var downloadFile in _downloadFiles)
                 {
                     var downloadPartStatus = new ManualResetEvent(false);
                     ThreadPool.QueueUserWorkItem(
                         arg =>
                         {
-                            downloadFile.downloadFile();
+                            downloadFile.DownloadFile();
                             downloadPartStatus.Set();
                         });
                     downloadStatus.Add(downloadPartStatus);
@@ -67,35 +96,22 @@ namespace Haste
                 WaitHandle.WaitAll(downloadStatus.ToArray());
                 Console.WriteLine("Download complete");
             }
-            Console.WriteLine("Compile Files? Y/N");
-            String compileChar = Console.ReadLine();
-            if (compileChar == "y" || compileChar == "Y")
-            {
-                Console.WriteLine("Compiling Files.....");
-                fileCompiler(name, downloadFiles);
-            }
+            FileCompiler(FileName, _downloadFiles);
         }
-        public String getFileName(String hrefLink)
+
+        private Tuple<long, bool> GetDownloadProperites(string URL)
         {
-            Uri uri = new Uri(hrefLink);
-            string fileName = System.IO.Path.GetFileName(uri.LocalPath);
-            return fileName;
-        }
-        public Tuple<long, Boolean> getDownloadProperites(String URL)
-        {
-            Boolean resumable = false;
+            bool resumable = false;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(URL);
             request.Method = "HEAD";
             request.Timeout = 36000;
             long size = -1;
-            short responseCode = 0;
             for (int retry = 3; retry >= 0; retry--) {
                 try
                 {
                     using (HttpWebResponse response = (HttpWebResponse) request.GetResponse())
                     {
                         size = response.ContentLength;
-                        responseCode = (short) response.StatusCode;
                         if (response.Headers.Get("Accept-Ranges") != null)
                         {
                             resumable = true;
@@ -113,36 +129,13 @@ namespace Haste
                 }
             }
             Console.WriteLine("Downloading file.");
-            return new Tuple<long, Boolean>(size, resumable);
+            return new Tuple<long, bool>(size, resumable);
         }
-        public void fileCompiler(String fileName, List<Haste.File> downloadFiles)
+
+        private void FileCompiler(string fileName, List<Haste.HasteFile> downloadFiles)
         {
-            Haste.compiledFile CompiledFile = new Haste.compiledFile(fileName, downloadFiles);
-            CompiledFile.compile();
-        }
-        public void setDownloadFiles(List<Haste.File> downloadFiles)
-        {
-            this.downloadFiles = downloadFiles;
-        }
-        public List<Haste.File> getDownloadFiles()
-        {
-            return this.downloadFiles;
-        }
-        public void setPartitions(int partitions)
-        {
-            this.partitions = partitions;
-        }
-        public int getPartitions()
-        {
-            return this.partitions;
-        }
-        public void setURL(String URL)
-        {
-            this.URL = URL;
-        }
-        public String getURL()
-        {
-            return this.URL;
+            CompiledFile compiledFile = new CompiledFile(fileName, downloadFiles);
+            compiledFile.Compile();
         }
     }
 }
