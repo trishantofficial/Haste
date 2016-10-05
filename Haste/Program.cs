@@ -17,7 +17,11 @@ namespace Haste
             String URL = Console.ReadLine();
             Console.WriteLine("Enter number of parts...");
             int parts = int.Parse(Console.ReadLine());
+            var startTime = DateTime.Now;
             Download x = new Download(URL, parts);
+            var endTime = DateTime.Now;
+            TimeSpan time = endTime - startTime;
+            Console.WriteLine("Time taken = " + time.Seconds + " seconds.");
             Console.WriteLine("Program Ended.....");
             Console.ReadLine();
         }

@@ -3,6 +3,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Haste;
 
 namespace Haste
@@ -51,8 +52,9 @@ namespace Haste
                 Console.WriteLine("Download started.");
                 ServicePointManager.Expect100Continue = false;
                 ServicePointManager.DefaultConnectionLimit = 20;
-                var downloadStatus = new List<ManualResetEvent>();
-                ThreadPool.SetMaxThreads(4, 4);
+                /*var downloadStatus = new List<ManualResetEvent>();
+                int cores = Environment.ProcessorCount * 2;
+                ThreadPool.SetMaxThreads(cores, cores);
                 foreach (var downloadFile in downloadFiles)
                 {
                     var downloadPartStatus = new ManualResetEvent(false);
@@ -64,7 +66,8 @@ namespace Haste
                         });
                     downloadStatus.Add(downloadPartStatus);
                 }
-                WaitHandle.WaitAll(downloadStatus.ToArray());
+                WaitHandle.WaitAll(downloadStatus.ToArray());*/
+                Parallel.ForEach(downloadFiles, (downloadFile) => downloadFile.downloadFile());
                 Console.WriteLine("Download complete");
             }
             Console.WriteLine("Compile Files? Y/N");
