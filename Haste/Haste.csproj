@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompiledFile.cs" />
     <Compile Include="DownloadAids.cs" />
     <Compile Include="DownloadClient.cs" />
     <Compile Include="Download.cs" />
@@ -51,7 +50,6 @@
     <Compile Include="Exceptions\NoResponseReceivedException.cs" />
     <Compile Include="Exceptions\NotInitializedException.cs" />
     <Compile Include="Exceptions\SizeTooSmallException.cs" />
-    <Compile Include="HasteFile.cs" />
     <Compile Include="Interfaces\IDownloader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
