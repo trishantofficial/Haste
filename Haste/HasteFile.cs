@@ -5,6 +5,7 @@ using System.ComponentModel;
 
 namespace Haste
 {
+    // TODO wouldnt be needing this either.
     public class HasteFile
     {
         #region Variables and Properties

@@ -5,6 +5,7 @@ using static System.Console;
 
 namespace Haste
 {
+    // TODO we can remove this file.
     class CompiledFile
     {
         public string Name { get; private set; }
