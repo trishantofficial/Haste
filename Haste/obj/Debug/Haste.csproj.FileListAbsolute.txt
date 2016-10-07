@@ -5,8 +5,7 @@ c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\obj\Debug\Haste
 c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\obj\Debug\Haste.pdb
 c:\users\tishu\documents\visual studio 2015\Projects\Haste\Haste\obj\Debug\Haste.csprojResolveAssemblyReference.cache
 D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\bin\Debug\Haste.exe.config
-D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\obj\Debug\Haste.exe
-D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\obj\Debug\Haste.pdb
 D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\bin\Debug\Haste.exe
 D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\bin\Debug\Haste.pdb
-D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\obj\Debug\Haste.csprojResolveAssemblyReference.cache
+D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\obj\Debug\Haste.exe
+D:\Documents\Education\Programming\Visual Studio\Visual C#\HasteFork\Haste\obj\Debug\Haste.pdb

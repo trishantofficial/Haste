@@ -116,7 +116,6 @@ namespace Haste
         /// </summary>
         public void BeginDownload()
         {
-            Stopwatch downloadStopwatch = Stopwatch.StartNew();
             WriteLine("Download started.");
             if(Status != DownloadStatus.Initialized)
                 throw new NotInitializedException("Download not initialized");
@@ -134,8 +133,7 @@ namespace Haste
             {
                 _downloadTask
             });
-            WriteLine(downloadStopwatch.Elapsed);
-            downloadStopwatch.Stop();
+
             // Set the status to completed.
             Status = DownloadStatus.Completed;
             Debug.WriteLine("Download status: Completed.");
